@@ -2,46 +2,92 @@
  * @name accessibility.js
  * @description an accesibility checker for web-development
  */
+
 // Function to check if an element has an empty attribute
 function hasEmptyAttribute(element, attributeName) {
     return !element.getAttribute(attributeName);
 }
 
+// Function to find the nearest parent element with a specified class
+function findNearestParentWithClass(element, className) {
+    while (element && !element.classList.contains(className)) {
+        element = element.parentElement;
+    }
+    return element;
+}
+
+// Function to log element details
+function logElementDetails(elements, message, isWarning = true) {
+    const logFunc = isWarning ? console.warn : console.error;
+    console.groupCollapsed(message);
+    elements.forEach(({ element, parentBlockClasses }) => {
+        logFunc(`%cElement: %o\nParent .block classes: %c${parentBlockClasses.join(' ')}`, 'color: yellow;', element, 'color: white; font-weight:bold;');
+    });
+    console.groupEnd();
+}
 
 // Function to scan images and SVGs for alt attributes and dimensions
 function scanImagesAndSVGs() {
     const imagesAndSVGs = document.querySelectorAll('img, svg');
+    let imagesWithoutAlt = [];
+    let imagesWithEmptyAlt = [];
+    let imagesWithoutDimensions = [];
 
     imagesAndSVGs.forEach((element) => {
+        const parentBlock = findNearestParentWithClass(element, 'block');
+        const parentBlockClasses = parentBlock ? Array.from(parentBlock.classList) : ['No parent .block found'];
+
         const hasAltAttribute = element.hasAttribute('alt');
         const hasWidthAttribute = element.hasAttribute('width');
         const hasHeightAttribute = element.hasAttribute('height');
 
         if (!hasAltAttribute) {
-            console.error('Image without alt attribute found, please enter alt text:', element);
+            imagesWithoutAlt.push({ element, parentBlockClasses });
         } else if (hasEmptyAttribute(element, 'alt')) {
-            console.warn('There is an image with an empty alt attribute:', element);
+            imagesWithEmptyAlt.push({ element, parentBlockClasses });
         }
 
         if (!hasWidthAttribute || !hasHeightAttribute) {
-            console.warn('Image without width or height attributes found:', element);
+            imagesWithoutDimensions.push({ element, parentBlockClasses });
         }
     });
+
+    if (imagesWithoutAlt.length > 0) {
+        logElementDetails(imagesWithoutAlt, 'Images without alt attribute:', false);
+    }
+    if (imagesWithEmptyAlt.length > 0) {
+        logElementDetails(imagesWithEmptyAlt, 'Images with empty alt attribute:');
+    }
+    if (imagesWithoutDimensions.length > 0) {
+        logElementDetails(imagesWithoutDimensions, 'Images without width or height attributes:');
+    }
 }
 
 // Function to scan links and buttons for title attributes
 function scanLinksAndButtons() {
     const linksAndButtons = document.querySelectorAll('button');
+    let elementsWithoutTitle = [];
+    let elementsWithEmptyTitle = [];
 
     linksAndButtons.forEach((element) => {
+        const parentBlock = findNearestParentWithClass(element, 'block');
+        const parentBlockClasses = parentBlock ? Array.from(parentBlock.classList) : ['No parent .block found'];
+
         const hasTitleAttribute = element.hasAttribute('title');
 
         if (!hasTitleAttribute) {
-            console.warn('Button without Title Tag found, please enter Title Text:', element);
+            elementsWithoutTitle.push({ element, parentBlockClasses });
         } else if (hasEmptyAttribute(element, 'title')) {
-            console.warn('There is a Button/Link with an empty Title attribute:', element);
+            elementsWithEmptyTitle.push({ element, parentBlockClasses });
         }
     });
+
+    if (elementsWithoutTitle.length > 0) {
+        logElementDetails(elementsWithoutTitle, 'Buttons without Title Tag:');
+    }
+    if (elementsWithEmptyTitle.length > 0) {
+        logElementDetails(elementsWithEmptyTitle, 'Buttons/Links with an empty Title attribute:');
+    }
 }
 
 // Function to check font size on viewport resize
@@ -60,5 +106,3 @@ function checkFontSize() {
 scanImagesAndSVGs();
 scanLinksAndButtons();
 checkFontSize();
-
-Í
