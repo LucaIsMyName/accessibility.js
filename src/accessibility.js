@@ -26,9 +26,9 @@ function logElementDetails(elements, message, isWarning = true) {
     console.groupEnd();
 }
 
-// Function to scan images and SVGs for alt attributes and dimensions
+// Function to scan images for alt attributes and dimensions
 function scanImagesAndSVGs() {
-    const imagesAndSVGs = document.querySelectorAll('img, svg');
+    const imagesAndSVGs = document.querySelectorAll('img');
     let imagesWithoutAlt = [];
     let imagesWithEmptyAlt = [];
     let imagesWithoutDimensions = [];
